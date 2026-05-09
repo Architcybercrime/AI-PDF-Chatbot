@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.config import UPLOAD_DIR, MAX_FILE_SIZE_MB, GOOGLE_API_KEY, GROQ_API_KEY
+from app.config import UPLOAD_DIR, MAX_FILE_SIZE_MB, GROQ_API_KEY
 from app.models.schemas import ChatRequest, ChatResponse, DocumentInfo, HealthResponse
 from app.utils.pdf_parser import extract_text_from_pdf, get_pdf_page_count
 from app.utils.chunker import chunk_pages
@@ -33,8 +33,8 @@ async def health_check():
 @router.get("/debug")
 async def debug_check():
     return {
-        "google_key_set": bool(GOOGLE_API_KEY and len(GOOGLE_API_KEY) > 5),
         "groq_key_set": bool(GROQ_API_KEY and len(GROQ_API_KEY) > 5),
+        "embeddings": "HuggingFace all-MiniLM-L6-v2 (local, no API key needed)",
     }
 
 

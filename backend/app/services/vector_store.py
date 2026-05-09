@@ -1,24 +1,25 @@
 import logging
 import json
 from pathlib import Path
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
-from app.config import GOOGLE_API_KEY, FAISS_INDEX_DIR
+from app.config import FAISS_INDEX_DIR
 
 logger = logging.getLogger(__name__)
 
-_embeddings: GoogleGenerativeAIEmbeddings | None = None
+_embeddings: HuggingFaceEmbeddings | None = None
 _vector_store: FAISS | None = None
 _metadata_path = FAISS_INDEX_DIR / "documents_meta.json"
 
 
-def _get_embeddings() -> GoogleGenerativeAIEmbeddings:
+def _get_embeddings() -> HuggingFaceEmbeddings:
     global _embeddings
     if _embeddings is None:
-        _embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/gemini-embedding-001",
-            google_api_key=GOOGLE_API_KEY,
+        _embeddings = HuggingFaceEmbeddings(
+            model_name="all-MiniLM-L6-v2",
+            model_kwargs={"device": "cpu"},
+            encode_kwargs={"normalize_embeddings": True},
         )
     return _embeddings
 
