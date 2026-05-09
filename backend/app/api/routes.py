@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.config import UPLOAD_DIR, MAX_FILE_SIZE_MB, OPENAI_API_KEY
+from app.config import UPLOAD_DIR, MAX_FILE_SIZE_MB, GOOGLE_API_KEY
 from app.models.schemas import ChatRequest, ChatResponse, DocumentInfo, HealthResponse
 from app.utils.pdf_parser import extract_text_from_pdf, get_pdf_page_count
 from app.utils.chunker import chunk_pages
@@ -32,10 +32,10 @@ async def health_check():
 
 @router.get("/debug")
 async def debug_check():
-    key = OPENAI_API_KEY
+    key = GOOGLE_API_KEY
     return {
-        "openai_key_set": bool(key and len(key) > 5),
-        "openai_key_prefix": key[:8] + "..." if key and len(key) > 8 else "NOT SET",
+        "google_key_set": bool(key and len(key) > 5),
+        "google_key_prefix": key[:8] + "..." if key and len(key) > 8 else "NOT SET",
     }
 
 

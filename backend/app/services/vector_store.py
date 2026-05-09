@@ -1,22 +1,25 @@
 import logging
 import json
 from pathlib import Path
-from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
-from app.config import OPENAI_API_KEY, FAISS_INDEX_DIR
+from app.config import GOOGLE_API_KEY, FAISS_INDEX_DIR
 
 logger = logging.getLogger(__name__)
 
-_embeddings: OpenAIEmbeddings | None = None
+_embeddings: GoogleGenerativeAIEmbeddings | None = None
 _vector_store: FAISS | None = None
 _metadata_path = FAISS_INDEX_DIR / "documents_meta.json"
 
 
-def _get_embeddings() -> OpenAIEmbeddings:
+def _get_embeddings() -> GoogleGenerativeAIEmbeddings:
     global _embeddings
     if _embeddings is None:
-        _embeddings = OpenAIEmbeddings(api_key=OPENAI_API_KEY)
+        _embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/embedding-001",
+            google_api_key=GOOGLE_API_KEY,
+        )
     return _embeddings
 
 
