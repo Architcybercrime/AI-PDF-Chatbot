@@ -70,7 +70,7 @@ def chat(question: str, document_id: str | None = None, conversation_id: str | N
     llm = ChatGroq(
         model="llama-3.3-70b-versatile",
         temperature=0.1,
-        groq_api_key=GROQ_API_KEY,
+        api_key=GROQ_API_KEY,
     )
 
     messages = [
