@@ -100,8 +100,8 @@ async def chat_endpoint(request: ChatRequest):
         )
         return response
     except Exception as e:
-        logger.error(f"Chat error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate response")
+        logger.error(f"Chat error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to generate response: {e}")
 
 
 @router.get("/documents", response_model=list[DocumentInfo])
