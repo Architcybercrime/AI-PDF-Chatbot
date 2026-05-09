@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.config import UPLOAD_DIR, MAX_FILE_SIZE_MB
+from app.config import UPLOAD_DIR, MAX_FILE_SIZE_MB, OPENAI_API_KEY
 from app.models.schemas import ChatRequest, ChatResponse, DocumentInfo, HealthResponse
 from app.utils.pdf_parser import extract_text_from_pdf, get_pdf_page_count
 from app.utils.chunker import chunk_pages
@@ -28,6 +28,15 @@ async def health_check():
         documents_count=len(docs),
         index_ready=is_index_ready(),
     )
+
+
+@router.get("/debug")
+async def debug_check():
+    key = OPENAI_API_KEY
+    return {
+        "openai_key_set": bool(key and len(key) > 5),
+        "openai_key_prefix": key[:8] + "..." if key and len(key) > 8 else "NOT SET",
+    }
 
 
 @router.post("/upload", response_model=DocumentInfo)
@@ -74,8 +83,8 @@ async def upload_document(file: UploadFile = File(...)):
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         file_path.unlink(missing_ok=True)
-        logger.error(f"Upload processing failed: {e}")
-        raise HTTPException(status_code=500, detail="Failed to process document")
+        logger.error(f"Upload processing failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to process document: {e}")
 
 
 @router.post("/chat", response_model=ChatResponse)
