@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+_cors_env = os.getenv("CORS_ORIGINS", "")
+CORS_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else ["*"]
 UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "./uploads"))
 FAISS_INDEX_DIR = Path(os.getenv("FAISS_INDEX_DIR", "./faiss_index"))
 MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "20"))
