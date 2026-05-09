@@ -3,14 +3,21 @@ import json
 from pathlib import Path
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.schema import Document
+from langchain_core.documents import Document
 from app.config import OPENAI_API_KEY, FAISS_INDEX_DIR
 
 logger = logging.getLogger(__name__)
 
-_embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+_embeddings: OpenAIEmbeddings | None = None
 _vector_store: FAISS | None = None
 _metadata_path = FAISS_INDEX_DIR / "documents_meta.json"
+
+
+def _get_embeddings() -> OpenAIEmbeddings:
+    global _embeddings
+    if _embeddings is None:
+        _embeddings = OpenAIEmbeddings(api_key=OPENAI_API_KEY)
+    return _embeddings
 
 
 def _load_documents_meta() -> dict:
@@ -29,7 +36,7 @@ def get_vector_store() -> FAISS | None:
         index_path = FAISS_INDEX_DIR / "index.faiss"
         if index_path.exists():
             _vector_store = FAISS.load_local(
-                str(FAISS_INDEX_DIR), _embeddings, allow_dangerous_deserialization=True
+                str(FAISS_INDEX_DIR), _get_embeddings(), allow_dangerous_deserialization=True
             )
     return _vector_store
 
@@ -43,7 +50,7 @@ def add_chunks_to_store(chunks: list[dict], document_id: str, doc_info: dict):
     ]
 
     if _vector_store is None:
-        _vector_store = FAISS.from_documents(documents, _embeddings)
+        _vector_store = FAISS.from_documents(documents, _get_embeddings())
     else:
         _vector_store.add_documents(documents)
 

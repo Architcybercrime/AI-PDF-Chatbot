@@ -1,7 +1,7 @@
 import uuid
 import logging
 from langchain_openai import ChatOpenAI
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from app.config import OPENAI_API_KEY
 from app.services.vector_store import search_similar
 from app.models.schemas import ChatResponse, SourceReference
@@ -70,7 +70,7 @@ def chat(question: str, document_id: str | None = None, conversation_id: str | N
     llm = ChatOpenAI(
         model="gpt-4o-mini",
         temperature=0.1,
-        openai_api_key=OPENAI_API_KEY,
+        api_key=OPENAI_API_KEY,
     )
 
     messages = [
