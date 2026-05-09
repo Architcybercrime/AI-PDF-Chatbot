@@ -1,8 +1,8 @@
 import uuid
 import logging
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
-from app.config import GOOGLE_API_KEY
+from app.config import GROQ_API_KEY
 from app.services.vector_store import search_similar
 from app.models.schemas import ChatResponse, SourceReference
 
@@ -67,10 +67,10 @@ def chat(question: str, document_id: str | None = None, conversation_id: str | N
     context = "\n\n---\n\n".join(context_parts) if context_parts else "No relevant documents found."
     history = _format_history(conversation_id)
 
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+    llm = ChatGroq(
+        model="llama-3.3-70b-versatile",
         temperature=0.1,
-        google_api_key=GOOGLE_API_KEY,
+        groq_api_key=GROQ_API_KEY,
     )
 
     messages = [
