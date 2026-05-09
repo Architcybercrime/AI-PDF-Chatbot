@@ -9,6 +9,7 @@ export default function App() {
   const [selectedDoc, setSelectedDoc] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
   const [conversationId, setConversationId] = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   useEffect(() => {
     loadDocuments()
@@ -31,16 +32,17 @@ export default function App() {
   }
 
   function handleSelectDoc(id) {
-    setSelectedDoc(id)
+    setSelectedDoc(id === selectedDoc ? null : id)
     setConversationId(null)
   }
 
   function handleNewChat() {
     setConversationId(null)
+    setSelectedDoc(null)
   }
 
   return (
-    <div className="h-screen flex bg-gray-50">
+    <div className="h-screen flex overflow-hidden">
       <Sidebar
         documents={documents}
         selectedDoc={selectedDoc}
@@ -48,12 +50,17 @@ export default function App() {
         onUpload={() => setShowUpload(true)}
         onNewChat={handleNewChat}
         onDocumentsChange={loadDocuments}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
       />
 
       <ChatPanel
         selectedDoc={selectedDoc}
         conversationId={conversationId}
         onConversationId={setConversationId}
+        documents={documents}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        sidebarOpen={sidebarOpen}
       />
 
       {showUpload && (

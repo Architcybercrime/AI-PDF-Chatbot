@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, X, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { Upload, X, Loader2, CheckCircle, AlertCircle, FileUp, Sparkles } from 'lucide-react'
 import { uploadDocument } from '../services/api'
 
 export default function UploadModal({ onClose, onUploaded }) {
-  const [status, setStatus] = useState('idle') // idle | uploading | success | error
+  const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
   const [progress, setProgress] = useState('')
 
@@ -25,14 +25,14 @@ export default function UploadModal({ onClose, onUploaded }) {
     }
 
     setStatus('uploading')
-    setProgress(`Uploading ${file.name}...`)
+    setProgress(`Processing ${file.name}...`)
     setError('')
 
     try {
       const doc = await uploadDocument(file)
       setStatus('success')
-      setProgress(`${doc.filename} processed (${doc.chunk_count} chunks)`)
-      setTimeout(() => onUploaded(doc), 800)
+      setProgress(`${doc.filename} — ${doc.chunk_count} chunks indexed`)
+      setTimeout(() => onUploaded(doc), 1000)
     } catch (err) {
       setStatus('error')
       setError(err.message)
@@ -47,61 +47,100 @@ export default function UploadModal({ onClose, onUploaded }) {
   })
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-5 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Upload Document</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded transition">
-            <X className="w-5 h-5 text-gray-500" />
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="glass rounded-3xl shadow-2xl w-full max-w-lg glow-purple" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 pb-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <FileUp className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">Upload Document</h2>
+              <p className="text-xs text-dark-400">PDF files up to 20MB</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/5 transition text-dark-400 hover:text-white">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-5">
+        {/* Drop Zone */}
+        <div className="p-6">
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${
+            className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-300 ${
               isDragActive
-                ? 'border-indigo-400 bg-indigo-50'
+                ? 'border-indigo-400/50 bg-indigo-500/10'
                 : status === 'error'
-                ? 'border-red-300 bg-red-50'
+                ? 'border-red-400/30 bg-red-500/5'
                 : status === 'success'
-                ? 'border-green-300 bg-green-50'
-                : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50'
+                ? 'border-emerald-400/30 bg-emerald-500/5'
+                : 'border-white/10 hover:border-indigo-400/30 hover:bg-white/[0.02]'
             }`}
           >
             <input {...getInputProps()} />
 
             {status === 'idle' && (
               <>
-                <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm text-gray-600 font-medium">
-                  {isDragActive ? 'Drop your PDF here' : 'Drag & drop a PDF, or click to select'}
+                <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-all duration-300 ${
+                  isDragActive ? 'bg-indigo-500/20 scale-110' : 'bg-white/5'
+                }`}>
+                  <Upload className={`w-8 h-8 transition-colors ${isDragActive ? 'text-indigo-400' : 'text-dark-500'}`} />
+                </div>
+                <p className="text-sm text-dark-200 font-medium mb-1">
+                  {isDragActive ? 'Drop your PDF here' : 'Drag & drop a PDF file here'}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">Max 20MB</p>
+                <p className="text-xs text-dark-500">or click to browse files</p>
               </>
             )}
 
             {status === 'uploading' && (
               <>
-                <Loader2 className="w-10 h-10 text-indigo-500 mx-auto mb-3 animate-spin" />
-                <p className="text-sm text-indigo-600 font-medium">{progress}</p>
+                <div className="w-16 h-16 rounded-2xl bg-indigo-500/15 mx-auto mb-4 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+                </div>
+                <p className="text-sm text-indigo-300 font-medium mb-1">{progress}</p>
+                <p className="text-xs text-dark-500">Extracting text and generating embeddings...</p>
+                <div className="mt-4 mx-auto w-48 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-pulse" style={{ width: '60%' }} />
+                </div>
               </>
             )}
 
             {status === 'success' && (
               <>
-                <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-3" />
-                <p className="text-sm text-green-600 font-medium">{progress}</p>
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 mx-auto mb-4 flex items-center justify-center">
+                  <CheckCircle className="w-8 h-8 text-emerald-400" />
+                </div>
+                <p className="text-sm text-emerald-300 font-medium mb-1">Document indexed successfully</p>
+                <p className="text-xs text-dark-400">{progress}</p>
               </>
             )}
 
             {status === 'error' && (
               <>
-                <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
-                <p className="text-sm text-red-600 font-medium">{error}</p>
-                <p className="text-xs text-red-400 mt-1">Click to try again</p>
+                <div className="w-16 h-16 rounded-2xl bg-red-500/15 mx-auto mb-4 flex items-center justify-center">
+                  <AlertCircle className="w-8 h-8 text-red-400" />
+                </div>
+                <p className="text-sm text-red-300 font-medium mb-1">{error}</p>
+                <p className="text-xs text-dark-500">Click or drop a file to try again</p>
               </>
             )}
+          </div>
+
+          {/* Features */}
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            {[
+              { icon: '🔍', label: 'Semantic Search' },
+              { icon: '📄', label: 'Source Citations' },
+              { icon: '💬', label: 'Follow-up Chat' },
+            ].map((f) => (
+              <div key={f.label} className="text-center py-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                <p className="text-base mb-1">{f.icon}</p>
+                <p className="text-[10px] text-dark-500 font-medium">{f.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
