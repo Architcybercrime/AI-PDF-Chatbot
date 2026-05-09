@@ -1,26 +1,54 @@
 import logging
 import json
+import requests
+import numpy as np
 from pathlib import Path
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 from app.config import FAISS_INDEX_DIR
 
 logger = logging.getLogger(__name__)
 
-_embeddings: HuggingFaceEmbeddings | None = None
+HF_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+
+
+class HuggingFaceInferenceEmbeddings(Embeddings):
+    """Free HuggingFace Inference API embeddings — no API key needed."""
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        batch_size = 32
+        all_embeddings = []
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            response = requests.post(
+                HF_API_URL,
+                json={"inputs": batch, "options": {"wait_for_model": True}},
+                timeout=60,
+            )
+            response.raise_for_status()
+            all_embeddings.extend(response.json())
+        return all_embeddings
+
+    def embed_query(self, text: str) -> list[float]:
+        response = requests.post(
+            HF_API_URL,
+            json={"inputs": text, "options": {"wait_for_model": True}},
+            timeout=60,
+        )
+        response.raise_for_status()
+        return response.json()
+
+
+_embeddings: HuggingFaceInferenceEmbeddings | None = None
 _vector_store: FAISS | None = None
 _metadata_path = FAISS_INDEX_DIR / "documents_meta.json"
 
 
-def _get_embeddings() -> HuggingFaceEmbeddings:
+def _get_embeddings() -> HuggingFaceInferenceEmbeddings:
     global _embeddings
     if _embeddings is None:
-        _embeddings = HuggingFaceEmbeddings(
-            model_name="all-MiniLM-L6-v2",
-            model_kwargs={"device": "cpu"},
-            encode_kwargs={"normalize_embeddings": True},
-        )
+        _embeddings = HuggingFaceInferenceEmbeddings()
     return _embeddings
 
 
